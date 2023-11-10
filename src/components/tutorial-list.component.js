@@ -1,99 +1,96 @@
-import React, {Component} from "react";
-import {Link} from "react-router-dom"
-
+import React, { Component } from "react";
 import tutorialService from "../services/tutorial.service";
 
-export default class TutorialsList extends Component{
+export default class TutorialsList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tutorials: [],
+      currentIndex: -1,
+      searchTitle: "",
+    };
+  }
 
-    constructor(props){
-        super(props);
-        this.onChangeTitle = this.onChangeTitle.bind(this)
-        this.findByTitle = this.findByTitle.bind(this)
-        this.state = {
-            tutorials:[],
-            currentIndex : -1,
-            currentTutorial : null,
-            searchTitle : ""
-        }
-    }
+  componentDidMount() {
+    this.getTutorials();
+    console.log("componentdidmount call");
+  }
 
-    componentDidMount(){
-        this.getTutorials()
-        console.log("componentdidmount call")
-    }
-
-    getTutorials(){
-        tutorialService.getAll()
-        .then(tutorialListesi => {
-            // console.log(tutorialListesi)
-            this.setState({
-                tutorials : tutorialListesi.data.splice(0,5)
-            });
-        })
-        .catch(hata => {
-            console.log("hata oluştu : " + hata)
+  getTutorials() {
+    tutorialService
+      .getAll()
+      .then((tutorialListesi) => {
+        this.setState({
+          tutorials: tutorialListesi.data.splice(0, 5),
         });
-    }
+      })
+      .catch((hata) => {
+        console.log("hata oluştu: " + hata);
+      });
+  }
 
-    AktifTutorial(tutorial,index){
-        this.setState({
-            currentTutorial: tutorial,
-            currentIndex : index
-        })
-    }
+  AktifTutorial(tutorial, index) {
+    this.setState({
+      currentTutorial: tutorial,
+      currentIndex: index,
+    });
+  }
 
-    findByTitle(){
-        tutorialService.findByTitle(this.state.searchTitle)
-        .then(queryTitleData => {
-            console.log(queryTitleData.data)
-            this.setState({
-                tutorials : queryTitleData.data
-            })
-        })
-        .catch(error => {"hata oluştu : " + error})
-    }
+  handleSearchChange = (e) => {
+    const searchTitle = e.target.value;
+    this.setState({ searchTitle });
 
-    onChangeTitle(e){
-        const title = e.target.value
-        console.log(title)
-        this.setState({
-            searchTitle : title
-        })
-    }  
-    refreshPage = () => {
-    window.location.reload(); 
+    // Filter the list based on the input value and update the state
+    this.filterTutorials(searchTitle);
   };
 
-
-    render(){
-        const {tutorials} = this.state;
-        const {currentIndex} = this.state;
-
-        return(
-            <div>
-                <div className="list row">
-                    <form className="d-flex" role="search" onSubmit={(e) => { e.preventDefault(); this.findByTitle(); }}>
-                        <input className="form-control me-2" type="text" placeholder="Başlığa göre ara" aria-label="Search" onChange={this.onChangeTitle}/>
-                        <button className="btn btn-outline-success" type="submit" onClick={this.findByTitle}>Ara</button>
-                        <button className="btn btn-outline-secondary" onClick={this.refreshPage}>Aramayı Sıfırla</button>
-                    </form>
-                    <br/>
-                    <div className="col-md-8 ">
-                    <ul className="list-group">
-                        {tutorials && tutorials.map((tutorial,index) => {
-                            return(
-                                <li className={"list-group-item " + (index === currentIndex ? "active" : "")} key={index} onClick={( ) => this.AktifTutorial(tutorial,index)} >
-                                    {tutorial.title} 
-                                    {/* - {tutorial.completed} */}
-                                </li>
-                            )
-                        })}
-                    </ul>
-                    </div>
-
-                </div>
-            </div>
-        )
+  filterTutorials(searchTitle) {
+    const { tutorials } = this.state;
+    if (searchTitle) {
+      const filteredTutorials = tutorials.filter((tutorial) =>
+        tutorial.title.toLowerCase().includes(searchTitle.toLowerCase())
+      );
+      this.setState({
+        tutorials: filteredTutorials,
+      });
+    } else {
+      // If the search input is empty, get all tutorials again
+      this.getTutorials();
     }
- 
+  }
+
+  render() {
+    const { tutorials, currentIndex, searchTitle } = this.state;
+
+    return (
+      <div>
+        <div className="list row">
+          <input
+            className="form-control me-2"
+            type="text"
+            placeholder="Başlığa göre ara"
+            aria-label="Search"
+            value={searchTitle}
+            onChange={this.handleSearchChange}
+          />
+          <br />
+          <div className="col-md-8">
+            <p>{searchTitle}</p>
+            <ul className="list-group">
+              {tutorials &&
+                tutorials.map((tutorial, index) => (
+                  <li
+                    className={"list-group-item " + (index === currentIndex ? "active" : "")}
+                    key={index}
+                    onClick={() => this.AktifTutorial(tutorial, index)}
+                  >
+                    {tutorial.title}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
