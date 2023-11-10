@@ -39,8 +39,6 @@ export default class TutorialsList extends Component {
   handleSearchChange = (e) => {
     const searchTitle = e.target.value;
     this.setState({ searchTitle });
-
-    // Filter the list based on the input value and update the state
     this.filterTutorials(searchTitle);
   };
 
@@ -54,7 +52,6 @@ export default class TutorialsList extends Component {
         tutorials: filteredTutorials,
       });
     } else {
-      // If the search input is empty, get all tutorials again
       this.getTutorials();
     }
   }
